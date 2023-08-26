@@ -27,7 +27,7 @@ public class XposedHook implements IXposedHookLoadPackage {
 
     @SuppressLint("StaticFieldLeak")
     private static Service service;
-    private static ClassLoader classLoader;
+    public static ClassLoader classLoader;
     private static PowerManager.WakeLock wakeLock;
     public static Handler handler;
     private static Runnable runnable;
@@ -68,6 +68,7 @@ public class XposedHook implements IXposedHookLoadPackage {
     }
 
     private static void initHandler() {
+        Log.recordLog("尝试初始化");
         if (handler == null) {
             handler = new Handler();
             if (Config.startAt7()) {
@@ -83,8 +84,8 @@ public class XposedHook implements IXposedHookLoadPackage {
                     String targetUid = RpcUtil.getUserId(XposedHook.classLoader);
                     if (targetUid != null) {
                         FriendIdMap.currentUid = targetUid;
-
                         Config.shouldReload = true;
+
                         Statistics.resetToday();
                         AntForest.checkEnergyRanking(XposedHook.classLoader);
 
@@ -100,6 +101,7 @@ public class XposedHook implements IXposedHookLoadPackage {
                             AntMember.receivePoint();
                             AntOcean.start();
                             AntOrchard.start();
+                            AntStall.start();
                         }
                     }
                     if (Config.collectEnergy() || Config.enableFarm()) {
@@ -111,11 +113,16 @@ public class XposedHook implements IXposedHookLoadPackage {
                 }
             };
         }
-        handler.removeCallbacks(runnable);
-        AntForest.stop();
-        AntForestNotification.stop(service, false);
-        AntForestNotification.start(service);
-        handler.post(runnable);
+        try {
+            handler.removeCallbacks(runnable);
+            AntForest.stop();
+            AntForestNotification.stop(service, false);
+            AntForestNotification.start(service);
+            handler.post(runnable);
+        } catch (Throwable th) {
+            Log.i(TAG, "initHandler err:");
+            Log.printStackTrace(TAG, th);
+        }
     }
 
     private void hookService(ClassLoader loader) {
@@ -132,7 +139,6 @@ public class XposedHook implements IXposedHookLoadPackage {
                             }
                             FriendIdMap.currentUid = targetUid;
                             if (handler != null) {
-                                Log.recordLog("尝试初始化");
                                 initHandler();
                             }
                         }
@@ -292,6 +298,25 @@ public class XposedHook implements IXposedHookLoadPackage {
                 restartHook(AntForestToast.context, force);
             } else if ("com.eg.android.AlipayGphone.xqe.test".equals(action)) {
                 Log.recordLog("收到测试消息");
+                try {
+                    Class<?> clsConfigService = XposedHelpers.findClass("com.alibaba.health.pedometer.core.datasource.sensor.core.ConfigService", XposedHook.classLoader);
+
+                    Object step_prevent_across_day_step = XposedHelpers.callStaticMethod(clsConfigService, "getBoolean",
+                            "step_prevent_across_day_step", false);
+                    Log.recordLog("step_prevent_across_day_step:" + step_prevent_across_day_step);
+
+                    Object step_prevent_across_day_time = XposedHelpers.callStaticMethod(clsConfigService, "getInt",
+                            "step_prevent_across_day_time", 1);
+                    Log.recordLog("step_prevent_across_day_time:" + step_prevent_across_day_time);
+
+                    Class<?> cls = XposedHelpers.findClass("com.alibaba.health.pedometer.core.trigger.TriggerPointAgent", XposedHook.classLoader);
+                    Object instance = XposedHelpers.callStaticMethod(cls, "getInstance");
+                    Object ts = XposedHelpers.callMethod(instance, "getTimeStamp");
+                    Log.recordLog("ts:" + ts);
+                } catch (Throwable th) {
+                    Log.printStackTrace(TAG, th);
+                }
+
 //                alarmHook(AntForestToast.context, 3000, true);
             } else if ("com.eg.android.AlipayGphone.xqe.cancelAlarm7".equals(action)) {
                 Config.cancelAlarm7(AntForestToast.context, false);

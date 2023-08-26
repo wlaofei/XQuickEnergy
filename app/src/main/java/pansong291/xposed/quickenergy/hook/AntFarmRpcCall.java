@@ -29,7 +29,7 @@ public class AntFarmRpcCall {
 
     public static String queryLoveCabin(String userId) {
         String args1 = "[{\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"ENTERFARM\",\"userId\":\"" +
-                userId + "\",\"version\":\"unknown\"}]";
+                userId + "\",\"version\":\"" + VERSION + "\"}]";
         return RpcUtil.request("com.alipay.antfarm.queryLoveCabin", args1);
     }
 
@@ -115,10 +115,9 @@ public class AntFarmRpcCall {
         return RpcUtil.request("com.alipay.antfarm.listToolTaskDetails", args1);
     }
 
-    public static String receiveToolTaskReward(String awardType, int rewardCount, String taskType) {
-        String args1 = "[{\"ignoreLimit\":false,\"requestType\":\"NORMAL\",\"rewardCount\":"
-                + rewardCount + ",\"rewardType\":\"" + awardType +
-                "\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"taskType\":\""
+    public static String receiveToolTaskReward(String rewardType, int rewardCount, String taskType) {
+        String args1 = "[{\"ignoreLimit\":false,\"requestType\":\"NORMAL\",\"rewardCount\":" + rewardCount
+                + ",\"rewardType\":\"" + rewardType + "\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"taskType\":\""
                 + taskType + "\",\"version\":\"" + VERSION + "\"}]";
         return RpcUtil.request("com.alipay.antfarm.receiveToolTaskReward", args1);
     }
@@ -285,6 +284,11 @@ public class AntFarmRpcCall {
                         + VERSION + "\"}]");
     }
 
+    public static String collectKitchenGarbage() {
+        return RpcUtil.request("com.alipay.antfarm.collectKitchenGarbage",
+                "[{\"requestType\":\"RPC\",\"sceneCode\":\"ANTFARM\",\"source\":\"VILLA\",\"version\":\"unknown\"}]");
+    }
+
     /* 日常任务 */
 
     public static String doFarmTask(String bizKey) {
@@ -319,4 +323,18 @@ public class AntFarmRpcCall {
                 "[{\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5 \",\"version\":\"\"}]");
     }
 
+    /* 小麦 */
+
+    public static String acceptGift() {
+        return RpcUtil.request("com.alipay.antfarm.acceptGift",
+                "[{\"ignoreLimit\":false,\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"version\":\""
+                        + VERSION + "\"}]");
+    }
+
+    public static String visitFriend(String friendFarmId) {
+        return RpcUtil.request("com.alipay.antfarm.visitFriend",
+                "[{\"friendFarmId\":\"" + friendFarmId
+                        + "\",\"requestType\":\"NORMAL\",\"sceneCode\":\"ANTFARM\",\"source\":\"H5\",\"version\":\""
+                        + VERSION + "\"}]");
+    }
 }
